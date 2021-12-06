@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.obn.kidscafe.dao.SearchDAO">
+	
+
+   <!-- list -->
+    <select id="searchList1" resultType="com.obn.kidscafe.vo.CafeVO" parameterType="com.obn.kidscafe.vo.SearchVO">
+		SELECT distinct kc.kc_id, kc.kc_password, kc.kc_name, kc.kc_new_address, kc.kc_postal_code, kc.kc_phone, kc.kc_license_num, kc.kc_wmax, kc.kc_hmax, kc.kc_business_hours, kc.kc_holiday, kc.kc_photo, kc.kc_introduction
+				FROM ((`schedule` AS s inner JOIN (SELECT *	FROM kidscafe WHERE kc_new_address LIKE #{location}) AS kc ON s.KC_ID = kc.kc_id)
+				LEFT outer JOIN reserve AS rsv ON s.s_ID = rsv.s_id AND rsv.RSV_TIME = #{date}
+				INNER JOIN `order` AS od ON rsv.RSV_ID = od.RSV_ID)
+				INNER JOIN ticket AS tc ON od.TC_ID = tc.TC_ID 
+				AND tc.TC_ADULT=0
+				GROUP BY rsv.s_id
+				HAVING SUM(od.COUNT)+#{count} <![CDATA[<=]]> ${max}
+	</select>
+    <select id="searchList2" resultType="com.obn.kidscafe.vo.CafeVO" parameterType="com.obn.kidscafe.vo.SearchVO">
+		SELECT distinct kc.kc_id, kc.kc_password, kc.kc_name, kc.kc_new_address, kc.kc_postal_code, kc.kc_phone, kc.kc_license_num, kc.kc_wmax, kc.kc_hmax, kc.kc_business_hours, kc.kc_holiday, kc.kc_photo, kc.kc_introduction
+		FROM (`schedule` AS s inner JOIN (SELECT * FROM kidscafe WHERE kc_new_address LIKE #{location}) as kc ON s.KC_ID = kc.kc_id) 
+		LEFT outer JOIN reserve AS rsv ON s.s_ID = rsv.s_id AND rsv.RSV_TIME = #{date}
+		WHERE rsv.rsv_id IS null
+		HAVING #{count} <![CDATA[<=]]> ${max}
+			
+	</select>
+   
+   <!-- info -->
+	<select id="selectByCafeId" resultType="com.obn.kidscafe.vo.CafeVO" parameterType="String">
+		SELECT * from kidscafe where kc_id=#{kc_id} ORDER BY 1
+	</select>
+	<select id="selectCafeAll" resultType="com.obn.kidscafe.vo.ReviewVO" parameterType="String">
+		SELECT * from review where kc_id=#{kc_id}
+	</select>
+	<select id="selectByKcId" resultType="com.obn.kidscafe.vo.ScheduleVO" parameterType="string">
+		SELECT * FROM schedule WHERE schedule.kc_id = #{kc_id} ORDER BY 1
+	</select>
+	<select id="selectByKCafeId" resultType="com.obn.kidscafe.vo.TicketVO" parameterType="string">
+      SELECT * FROM ticket WHERE ticket.kc_id = #{kc_id} ORDER BY 1
+   </select>
+   
+	<select id="selectBySId" resultType="com.obn.kidscafe.vo.ScheduleVO" parameterType="string">
+      SELECT * FROM schedule WHERE schedule.s_id = #{s_id} 
+   </select>
+	<select id="selectTcChk" resultType="com.obn.kidscafe.vo.TcChkVO" parameterType="map">
+      SELECT  s.s_id,  SUM(od.count) AS rsv_count
+	FROM ((`schedule` AS s inner JOIN kidscafe AS kc ON s.KC_ID = kc.kc_id)
+	LEFT outer JOIN reserve AS rsv ON s.s_ID = rsv.s_id AND s.s_id = #{s_id} AND rsv.RSV_TIME = #{date}
+	inner JOIN `order` AS od ON rsv.RSV_ID = od.RSV_ID)
+	inner JOIN ticket AS tc ON od.TC_ID = tc.TC_ID
+	AND tc.TC_ADULT=0
+	GROUP BY rsv.S_ID
+   </select>
+   
+   
+	
+	
+	<!-- reserve -->
+	<insert id="insertRsv" 
+          parameterType="com.obn.kidscafe.vo.ReserveVO">
+    insert into reserve (rsv_id, rsv_comment, rsv_state, rsv_time, rsv_create_time, user_id, s_id, kc_id)
+	values( #{rsv_id}, #{rsv_comment}, #{rsv_state}, #{rsv_time}, #{rsv_create_time}, #{user_id}, #{s_id},#{kc_id})
+   </insert>
+	<insert id="insertOrder" 
+          parameterType="com.obn.kidscafe.vo.OrderVO">
+	insert into `order` (rsv_id, tc_id, count)
+	values( #{rsv_id}, #{tc_id}, #{count}) 
+   </insert>
+	
+ </mapper>

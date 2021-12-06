@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.obn.kidscafe.dao.MainDAO">
+	<!-- cafe -->
+	<insert id="insertCafe" 
+          parameterType="com.obn.kidscafe.vo.CafeVO">
+     insert into kidscafe(KC_ID, KC_PASSWORD, KC_NAME,KC_NEW_ADDRESS,KC_POSTAL_CODE,KC_PHONE,KC_LICENSE_NUM,KC_WMAX,KC_HMAX,KC_BUSINESS_HOURS,KC_HOLIDAY,KC_PHOTO,KC_INTRODUCTION)
+     values( #{kc_id}, #{kc_password},#{kc_name},#{kc_new_address},#{kc_postal_code},#{kc_phone},
+     #{kc_license_num},#{kc_wmax},#{kc_hmax},#{kc_business_hours},#{kc_holiday},#{kc_photo},#{kc_introduction} )
+   </insert>
+
+	 <!-- 로그인 -->
+	<select id="selectCafeLogin" resultType="com.obn.kidscafe.vo.CafeVO" parameterType="map">
+		SELECT * 
+		  FROM kidscafe
+		 WHERE KC_ID = #{kc_id}
+		   AND KC_PASSWORD = #{kc_password}   
+	</select>
+	<!-- 구 -->
+	<select id="selectGuAll" resultType="String" >
+	SELECT distinct SUBSTRING(substring_index(kc_new_address,' ', 2 ),7)  FROM kidscafe
+	</select>
+	
+	<!-- user -->
+	<insert id="insertUser" 
+          parameterType="com.obn.kidscafe.vo.UserVO">
+     insert into user(USER_ID,USER_PASSWORD, USER_NAME,USER_EMAIL,USER_POSTAL_CODE,USER_NEW_ADDRESS,USER_PHONE,USER_LEVEL)
+     values( #{user_id}, #{user_password},#{user_name},#{user_email},#{user_postal_code},#{user_new_address},#{user_phone},#{user_level} )
+   </insert>
+ 
+	 <!-- 로그인 -->
+	<select id="selectUserLogin" resultType="com.obn.kidscafe.vo.UserVO" parameterType="map">
+		SELECT * 
+		  FROM user
+		 WHERE USER_ID = #{user_id}
+		   AND USER_PASSWORD = #{user_password}   
+	</select>	
+		<!-- 고객아이디 중복체크 -->
+	<select id = "uIdChk" resultType="int"  parameterType="string">
+	SELECT COUNT(*) FROM USER WHERE USER_ID = #{user_id}
+	</select>
+			<!-- 카페아이디 중복체크 -->
+	<select id = "kIdChk" resultType="int"  parameterType="string">
+	SELECT COUNT(*) FROM kidscafe WHERE KC_ID  = #{kc_id}
+	</select>
+	
+ </mapper>

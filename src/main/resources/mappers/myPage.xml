@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.obn.kidscafe.dao.MyPageDAO">
+
+	<!-- cafe -->
+	<select id="kidscafeRsv"
+		resultType="com.obn.kidscafe.vo.ReserveVO" parameterType="String">
+		SELECT * from
+		reserve where kc_id=#{kc_id} and rsv_state=0 ORDER BY rsv_time
+	</select>
+
+	<update id="updateCafe"
+		parameterType="com.obn.kidscafe.vo.UserVO">
+		update kidscafe
+		set kc_name = #{kc_name},
+		kc_phone = #{kc_phone},
+		kc_business_hours = #{kc_business_hours},
+		kc_introduction = #{kc_introduction},
+		kc_photo = #{kc_photo}
+		where kc_id = #{kc_id}
+	</update>
+		<select id="kidscafeRsvByDate" resultType="com.obn.kidscafe.vo.ReserveChkVO" parameterType="map">
+		SELECT rsv.RSV_ID, rsv.RSV_COMMENT, user.USER_NAME, s.S_TIME, od.COUNT, rsv.RSV_STATE
+		FROM ((reserve AS rsv
+		LEFT OUTER JOIN `schedule` AS s ON rsv.S_ID=s.S_ID)
+		LEFT OUTER JOIN user ON rsv.USER_ID=user.USER_ID)
+		LEFT OUTER JOIN `order` as od ON od.RSV_ID=rsv.RSV_ID
+		WHERE rsv.kc_id = #{kc_id}
+		AND (od.TC_ID LIKE '%01' OR od.TC_ID LIKE '%03')
+		AND DATE_FORMAT(rsv_time,'%Y-%m-%d')=#{rsv_time}
+	</select>
+	
+
+	<!-- user -->
+	<select id="RsvByUserId" resultType="com.obn.kidscafe.vo.UserRsvVO"
+		parameterType="String">
+		select rsv_id, rsv_state, rsv_time, user_id, reserve.KC_ID, rv_content, kc_name
+		FROM ((reserve left JOIN review USING(rsv_id)) LEFT JOIN kidscafe on reserve.kc_id=kidscafe.KC_ID) where user_id=#{user_id} and rsv_state=0 ORDER BY rsv_time
+	</select>
+
+	<select id="LastRsvByUserId"
+		resultType="com.obn.kidscafe.vo.UserRsvVO" parameterType="String">
+		select rsv_id, rsv_state, rsv_time, user_id, reserve.KC_ID, rv_content, kc_name
+		FROM ((reserve left JOIN review USING(rsv_id)) LEFT JOIN kidscafe on reserve.kc_id=kidscafe.KC_ID) where user_id=#{user_id} and rsv_state=1 ORDER BY rsv_time
+	</select>
+
+
+	<update id="updateUser" parameterType="com.obn.kidscafe.vo.UserVO">
+		update user
+		set user_email = #{user_email},
+		user_postal_code = #{user_postal_code},
+		user_new_address = #{user_new_address},
+		user_phone = #{user_phone}
+		where user_id = #{user_id}
+	</update>
+
+	<update id="cancelRsv" parameterType="String">
+		update reserve
+		set rsv_state = 2
+		where rsv_id = #{rsv_id}
+	</update>
+
+	<update id="afterRsv" parameterType="String">
+		update reserve
+		set rsv_state = 1
+		where rsv_id = #{rsv_id}
+	</update>
+
+	<update id="updateUserByRv" parameterType="com.obn.kidscafe.vo.UserVO">
+		update user
+		set user_rv_count = #{user_rv_count},
+		user_level = #{user_level}
+		where user_id = #{user_id}
+	</update>
+
+
+	<!-- review -->
+	<select id="selectByReviewByRsvId"
+		resultType="com.obn.kidscafe.vo.ReviewVO" parameterType="string">
+		SELECT * FROM
+		review WHERE review.rsv_id = #{rsv_id}
+	</select>
+
+	<insert id="insertReview"
+		parameterType="com.obn.kidscafe.vo.ReviewVO">
+		insert into review (rsv_id, kc_id, rv_content,
+		rv_create_time, rv_state, rv_photo)
+		values (#{rsv_id}, #{kc_id},
+		#{rv_content}, #{rv_create_time}, #{rv_state}, #{rv_photo})
+	</insert>
+	<insert id="insertReviewWithoutPhoto"
+		parameterType="com.obn.kidscafe.vo.ReviewVO">
+		insert into review (rsv_id, kc_id, rv_content,
+		rv_create_time, rv_state)
+		values (#{rsv_id}, #{kc_id}, #{rv_content},
+		#{rv_create_time}, #{rv_state})
+	</insert>
+	<update id="updateReviewComment"
+		parameterType="com.obn.kidscafe.vo.ReviewVO">
+		update review
+		set rv_comment = #{rv_comment},
+		rv_comment_create_time = #{rv_comment_create_time}
+		where review.rsv_id
+		= #{rsv_id}
+	</update>
+	
+<!-- kidscafePage rv용 mapper -->	
+	<select id="selectCafeRvList"
+		resultType="com.obn.kidscafe.vo.CafeRvChkVO" parameterType="string">
+		SELECT rv.RSV_ID, rv.RV_CONTENT, rv.RV_CREATE_TIME, rv.RV_COMMENT, rv.RV_COMMENT_CREATE_TIME, rv.RV_STATE, rv.RV_PHOTO, rsv.kc_id, user.USER_NAME, rsv.RSV_TIME, s.S_TIME, rsv.RSV_COMMENT,od.COUNT 
+		FROM (((reserve AS rsv RIGHT OUTER JOIN review as rv ON rsv.RSV_ID = rv.RSV_ID)
+		LEFT OUTER JOIN `schedule` AS s ON rsv.S_ID=s.S_ID)
+		LEFT OUTER JOIN user ON rsv.USER_ID=user.USER_ID)
+		LEFT OUTER JOIN `order` as od ON od.RSV_ID=rv.RSV_ID
+		WHERE rsv.kc_id = #{kc_id}
+		AND (od.TC_ID LIKE '%01' OR od.TC_ID LIKE '%03')
+	</select>
+	
+	
+</mapper>
