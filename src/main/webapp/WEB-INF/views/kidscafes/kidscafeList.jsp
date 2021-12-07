@@ -33,7 +33,7 @@
 
   </style>
   <!-- 리스트 페이지 필수 -->
-  <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=t3nlm386dg"></script>
+  <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=************"></script>
   <style>
    div.left{
    		width: 30%;
